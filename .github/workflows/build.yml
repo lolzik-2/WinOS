@@ -1,4 +1,4 @@
-name: Build Cardputer firmware
+name: Build WinOS firmware
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SKETCH_DIR: Cardputer-OS
+      SKETCH_DIR: WinOS
       FQBN: esp32:esp32:esp32s3
       BOARD_OPTIONS: "CDCOnBoot=cdc,PSRAM=disabled,FlashMode=qio,FlashSize=8M,PartitionScheme=default"
 
@@ -40,10 +40,10 @@ jobs:
       - name: Rename firmware
         run: |
           mkdir -p artifacts
-          cp build/*.bin artifacts/Cardputer-OS.bin
+          cp build/WinOS.ino.bin artifacts/WinOS.bin
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          name: Cardputer-OS-firmware
-          path: artifacts/Cardputer-OS.bin
+          name: WinOS-firmware
+          path: artifacts/WinOS.bin
