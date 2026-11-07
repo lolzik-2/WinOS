@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SKETCH_DIR: WinOS
+      SKETCH_DIR: "."
       SKETCH_NAME: WinOS
       FQBN: "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashMode=qio,FlashSize=8M,PSRAM=disabled,PartitionScheme=default,USBMode=hwcdc"
       ESP32_CORE: "3.3.5"
