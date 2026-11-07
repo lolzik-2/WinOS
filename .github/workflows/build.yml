@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SKETCH_DIR: WinOS
+      SKETCH_DIR: .
       FQBN: esp32:esp32:esp32s3
       BOARD_OPTIONS: "CDCOnBoot=cdc,PSRAM=disabled,FlashMode=qio,FlashSize=8M,PartitionScheme=default"
 
@@ -37,13 +37,24 @@ jobs:
             --output-dir build \
             "$SKETCH_DIR"
 
-      - name: Rename firmware
+      - name: Install esptool
+        run: pip install esptool
+
+      - name: Merge into one firmware file
         run: |
+          BOOT_APP0=$(find ~/.arduino15 -name boot_app0.bin | head -n 1)
+          echo "boot_app0: $BOOT_APP0"
           mkdir -p artifacts
-          cp build/WinOS.ino.bin artifacts/WinOS.bin
+          esptool.py --chip esp32s3 merge_bin \
+            --output artifacts/WinOS-full.bin \
+            --flash_mode qio --flash_freq 80m --flash_size 8MB \
+            0x0     build/WinOS.ino.bootloader.bin \
+            0x8000  build/WinOS.ino.partitions.bin \
+            0xe000  "$BOOT_APP0" \
+            0x10000 build/WinOS.ino.bin
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
           name: WinOS-firmware
-          path: artifacts/WinOS.bin
+          path: artifacts/WinOS-full.bin
