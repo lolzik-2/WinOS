@@ -885,7 +885,7 @@ static void drawFrame() {
 void setup() {
   auto cfg = M5.config();
   M5Cardputer.begin(cfg, true);
-  M5Cardputer.Display.setRotation(1);
+  M5Cardputer.Display.setRotation(0);
 
   // load saved brightness (default 255 on first boot)
   prefs.begin("win", false);
