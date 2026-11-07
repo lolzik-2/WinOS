@@ -885,6 +885,8 @@ static void drawFrame() {
 void setup() {
   auto cfg = M5.config();
   M5Cardputer.begin(cfg, true);
+
+  // Set the panel to landscape FIRST, so everything after uses 240x135
   M5Cardputer.Display.setRotation(1);
 
   // load saved brightness (default 255 on first boot)
@@ -893,8 +895,10 @@ void setup() {
   if (brightness < 8) brightness = 8;
   M5Cardputer.Display.setBrightness(brightness);
 
+  // Back buffer: plain 240x135 landscape, no extra rotation on the sprite
   fb = new M5Canvas(&M5Cardputer.Display);
   fb->setColorDepth(16);
+  fb->setRotation(0);
   if (!fb->createSprite(SCR_W, SCR_H)) {
     M5Cardputer.Display.fillScreen(COL_BLACK);
     M5Cardputer.Display.setCursor(10, 10);
