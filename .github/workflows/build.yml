@@ -1,8 +1,8 @@
-name: Build Cardputer ADV firmware
+name: Build Cardputer firmware
 
 on:
   push:
-    branches: [main]
+    branches: [ main, master ]
   pull_request:
   workflow_dispatch:
 
@@ -11,63 +11,39 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SKETCH_DIR: "."
-      SKETCH_NAME: WinOS
-      FQBN: "esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashMode=qio,FlashSize=8M,PSRAM=disabled,PartitionScheme=default,USBMode=hwcdc"
-      ESP32_CORE: "3.3.5"
+      SKETCH_DIR: Cardputer-OS
+      FQBN: esp32:esp32:esp32s3
+      BOARD_OPTIONS: "CDCOnBoot=cdc,PSRAM=disabled,FlashMode=qio,FlashSize=8M,PartitionScheme=default"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Arduino CLI
+      - name: Install arduino-cli
         uses: arduino/setup-arduino-cli@v2
 
-      - name: Configure ESP32 board index
+      - name: Configure core and libraries
         run: |
-          arduino-cli config init --overwrite
-          arduino-cli config set board_manager.additional_urls \
-            https://espressif.github.io/arduino-esp32/package_esp32_index.json
-
-      - name: Install ESP32 core
-        run: |
+          arduino-cli config init
+          arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
           arduino-cli core update-index
-          arduino-cli core install esp32:esp32@${{ env.ESP32_CORE }}
-
-      - name: Install libraries
-        run: |
-          arduino-cli lib install "M5Unified"
-          arduino-cli lib install "M5GFX"
-          arduino-cli lib install "M5Cardputer"
+          arduino-cli core install esp32:esp32@3.3.5
+          arduino-cli lib install "M5Unified" "M5GFX" "M5Cardputer"
 
       - name: Compile sketch
         run: |
           arduino-cli compile \
-            --fqbn "${{ env.FQBN }}" \
+            --fqbn "$FQBN:$BOARD_OPTIONS" \
             --output-dir build \
-            "${{ env.SKETCH_DIR }}"
+            "$SKETCH_DIR"
 
-      - name: Install esptool
-        run: pip install esptool
-
-      - name: Show build files
-        run: ls -la build/
-
-      - name: Merge into one full flash image
+      - name: Rename firmware
         run: |
-          esptool --chip esp32s3 merge-bin \
-            -o build/${{ env.SKETCH_NAME }}-full.bin \
-            --flash-mode qio \
-            --flash-size 8MB \
-            0x0     build/${{ env.SKETCH_NAME }}.ino.bootloader.bin \
-            0x8000  build/${{ env.SKETCH_NAME }}.ino.partitions.bin \
-            0x10000 build/${{ env.SKETCH_NAME }}.ino.bin
+          mkdir -p artifacts
+          cp build/*.bin artifacts/Cardputer-OS.bin
 
-      - name: Upload firmware artifact
+      - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          name: winos-firmware
-          path: |
-            build/${{ env.SKETCH_NAME }}-full.bin
-            build/${{ env.SKETCH_NAME }}.ino.bin
-          if-no-files-found: error
+          name: Cardputer-OS-firmware
+          path: artifacts/Cardputer-OS.bin
