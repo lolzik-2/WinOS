@@ -50,13 +50,15 @@ jobs:
       - name: Install esptool
         run: pip install esptool
 
+      - name: Show build files
+        run: ls -la build/
+
       - name: Merge into one full flash image
         run: |
-          esptool merge-bin \
-            --chip esp32s3 \
+          esptool --chip esp32s3 merge-bin \
+            -o build/${{ env.SKETCH_NAME }}-full.bin \
             --flash-mode qio \
             --flash-size 8MB \
-            -o build/${{ env.SKETCH_NAME }}-full.bin \
             0x0     build/${{ env.SKETCH_NAME }}.ino.bootloader.bin \
             0x8000  build/${{ env.SKETCH_NAME }}.ino.partitions.bin \
             0x10000 build/${{ env.SKETCH_NAME }}.ino.bin
